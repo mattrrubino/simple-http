@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+// An HttpRequest represents a stream of bytes
+// sent over a TCP connection conforming to HTTP.
 type HttpRequest struct {
 	version     string
 	method      string
@@ -13,10 +15,14 @@ type HttpRequest struct {
 	headers     map[string]string
 }
 
+// An HttpResponseBody implements a reader which is
+// used to acquire the byte stream of the body.
 type HttpResponseBody interface {
 	io.Reader
 }
 
+// An HttpResponse represents a stream of bytes that will
+// be sent over a TCP connection conforming to HTTP.
 type HttpResponse struct {
 	version string
 	code    int
@@ -24,14 +30,18 @@ type HttpResponse struct {
 	body    HttpResponseBody
 }
 
+// An HttpError describes an error that
+// occurred while handling an HTTP request
 type HttpError struct {
 	message string
 }
 
+// Error prints the error message of an HttpError object.
 func (error HttpError) Error() string {
 	return error.message
 }
 
+// Map containing all valid methods for HTTP requests.
 var validHttpMethods = map[string]bool{
 	"GET":     true,
 	"HEAD":    true,
@@ -44,6 +54,9 @@ var validHttpMethods = map[string]bool{
 	"PATCH":   true,
 }
 
+// parseHttpRequestHeaderStrings parses a list of strings from the
+// header section of an HTTP request into a map from keys to values
+// where each key-value pair is associated with one string from headerStrings
 func parseHttpRequestHeaderStrings(headerStrings []string) map[string]string {
 	headers := make(map[string]string)
 
@@ -67,6 +80,8 @@ func parseHttpRequestHeaderStrings(headerStrings []string) map[string]string {
 	return headers
 }
 
+// parseHttpRequestTargetString parses the target in the start
+// line of an HTTP request into its path and query strings.
 func parseHttpRequestTargetString(target string) (string, map[string]string) {
 	queryStrings := make(map[string]string)
 
@@ -89,6 +104,10 @@ func parseHttpRequestTargetString(target string) (string, map[string]string) {
 	return path, queryStrings
 }
 
+// parseHttpRequestBytes parses a slice of bytes associated with
+// an HTTP request and converts it into an HttpRequest struct.
+//
+// It returns an error if the request is malformed.
 func parseHttpRequestBytes(httpRequestBytes []byte) (*HttpRequest, error) {
 	httpRequestString := string(httpRequestBytes)
 	httpRequestLines := strings.Split(httpRequestString, "\n")

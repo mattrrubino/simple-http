@@ -6,6 +6,9 @@ import (
 	"net"
 )
 
+// StartHttpServer starts an HTTP server on the specified ip and port.
+//
+// It returns an error if the server fails to bind to the specified address.
 func StartHttpServer(ip, port string) error {
 	address := ip + ":" + port
 	ln, err := net.Listen("tcp", address)
@@ -29,6 +32,8 @@ func StartHttpServer(ip, port string) error {
 	}
 }
 
+// handleTcpConnection reads from and writes to a TCP connection following HTTP.
+// It should be run as a goroutine to maximize server throughput.
 func handleTcpConnection(conn net.Conn) {
 	fmt.Printf("Opened TCP connection to %v\n", conn.RemoteAddr())
 	defer conn.Close()
@@ -52,6 +57,11 @@ func handleTcpConnection(conn net.Conn) {
 	}
 }
 
+// getHttpRequest reads request bytes and transforms them
+// into an HttpRequest struct.
+//
+// It returns an error if any read operations fail or if
+// the request is malformed.
 func getHttpRequest(conn net.Conn) (*HttpRequest, error) {
 	httpRequestBytes := make([]byte, 1024)
 
@@ -68,6 +78,10 @@ func getHttpRequest(conn net.Conn) (*HttpRequest, error) {
 	return httpRequest, nil
 }
 
+// sendHttpResponse transforms an HttpResponse struct into bytes
+// and writes the data to the specified connection.
+//
+// It returns an error if any write operations fail.
 func sendHttpResponse(conn net.Conn, httpResponse *HttpResponse) error {
 	statusLine := fmt.Sprintf("%v %v\n", httpResponse.version, httpResponse.code)
 

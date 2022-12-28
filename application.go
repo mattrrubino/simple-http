@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// getFile opens a file with the specified filepath and gets its size.
+//
+// It returns an error if the file cannot be opened.
 func getFile(filepath string) (*os.File, int64, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
@@ -22,7 +25,9 @@ func getFile(filepath string) (*os.File, int64, error) {
 	return file, size, nil
 }
 
-func get404Response() (*HttpResponse, error) {
+// get404Response returns an HttpResponse struct which
+// describes a request to a resource that does not exist.
+func get404Response() *HttpResponse {
 	var sb strings.Builder
 
 	sb.WriteString("<html>\n")
@@ -44,9 +49,14 @@ func get404Response() (*HttpResponse, error) {
 	}
 
 	response := HttpResponse{"HTTP/1.1", 404, headers, bodyReader}
-	return &response, nil
+	return &response
 }
 
+// listDirectory returns a list of filenames
+// contained within the directory filepath.
+//
+// It returns an empty slice if the specified
+// directory does not exist.
 func listDirectory(filepath string) []string {
 	files, err := os.ReadDir(filepath)
 	if err != nil {
@@ -62,7 +72,9 @@ func listDirectory(filepath string) []string {
 	return filenames
 }
 
-func getDirectoryResponse(filepath string) (*HttpResponse, error) {
+// getDirectoryResponse returns an HttpResponse associated
+// with a request to a directory indicated by filepath.
+func getDirectoryResponse(filepath string) *HttpResponse {
 	var sb strings.Builder
 
 	sb.WriteString("<html>\n")
@@ -90,9 +102,13 @@ func getDirectoryResponse(filepath string) (*HttpResponse, error) {
 	}
 
 	response := HttpResponse{"HTTP/1.1", 200, headers, bodyReader}
-	return &response, nil
+	return &response
 }
 
+// getFileResponse returns an HttpResponse associated
+// with a request to a file indicated by filepath.
+//
+// It returns an error if the specified file cannot be opened.
 func getFileResponse(filepath string) (*HttpResponse, error) {
 	file, fileSize, err := getFile(filepath)
 	if err != nil {
@@ -122,16 +138,21 @@ func requestPathToFilePath(requestPath string) string {
 	return filepath
 }
 
+// getHttpResponse returns an HttpResponse associated
+// with the given HttpRequest.
+//
+// It returns an error if the request specifies a
+// file that cannot be opened.
 func getHttpResponse(request *HttpRequest) (*HttpResponse, error) {
 	filepath := requestPathToFilePath(request.path)
 
 	fileInfo, err := os.Stat(filepath)
 	if err != nil {
-		return get404Response()
+		return get404Response(), nil
 	}
 
 	if fileInfo.IsDir() {
-		return getDirectoryResponse(filepath)
+		return getDirectoryResponse(filepath), nil
 	} else {
 		return getFileResponse(filepath)
 	}
